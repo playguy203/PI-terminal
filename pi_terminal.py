@@ -1,5 +1,6 @@
 import os
 import time
+import re
 
 pi_str = ""
 
@@ -17,7 +18,7 @@ def banner():
 ██║     ██║       ██║   ███████╗██║  ██║██║ ╚═╝ ██║
 ╚═╝     ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
 
-PI TERMINAL v3
+PI TERMINAL v4
 """)
 
 
@@ -56,15 +57,32 @@ def mostrar_contexto(pos, longitud):
     print(flecha)
 
 
+def buscar_todas(secuencia):
+    return [m.start() for m in re.finditer(secuencia, pi_str)]
+
+
 def comando_search():
 
     numero = input("Número a buscar: ")
 
-    pos = pi_str.find(numero)
+    resultados = buscar_todas(numero)
 
-    if pos != -1:
-        print("Encontrado en posición:", pos + 1)
-        mostrar_contexto(pos, len(numero))
+    if resultados:
+
+        print("\nApariciones encontradas:", len(resultados))
+        print("Primera aparición en posición:", resultados[0] + 1)
+
+        mostrar_contexto(resultados[0], len(numero))
+
+        if len(resultados) > 1:
+
+            ver = input("\n¿Ver todas las posiciones? (s/n): ")
+
+            if ver.lower() == "s":
+
+                for r in resultados:
+                    print(r + 1)
+
     else:
         print("No encontrado en los dígitos cargados")
 
@@ -74,9 +92,10 @@ def comando_pos():
     pos = int(input("Posición: "))
 
     if pos <= len(pi_str):
-        print("Número en esa posición:", pi_str[pos-1])
 
+        print("Número en esa posición:", pi_str[pos-1])
         mostrar_contexto(pos-1, 1)
+
     else:
         print("Posición fuera del rango cargado")
 
@@ -94,21 +113,23 @@ def comando_pi():
     input("\nENTER para volver")
 
 
-def comando_load():
-    print("π ya está cargado desde el archivo pi.txt")
-
-
 def comando_findme():
 
     numero = input("Ingresa tu número personal (ej. fecha): ")
 
-    pos = pi_str.find(numero)
+    resultados = buscar_todas(numero)
 
-    if pos != -1:
-        print("Tu número aparece en π en la posición:", pos + 1)
-        mostrar_contexto(pos, len(numero))
+    if resultados:
+
+        print("\nTu número aparece en π")
+
+        print("Total de apariciones:", len(resultados))
+        print("Primera aparición en la posición:", resultados[0] + 1)
+
+        mostrar_contexto(resultados[0], len(numero))
+
     else:
-        print("Tu número no aparece en los dígitos cargados")
+        print("\nTu número no aparece en los dígitos cargados")
 
 
 def menu():
@@ -122,7 +143,6 @@ Comandos disponibles
 search   buscar número en π
 pos      ver número en una posición
 pi       mostrar π completo
-load     informar sobre carga de π
 findme   buscar tu número personal
 exit     salir
 """)
@@ -137,9 +157,6 @@ exit     salir
 
         elif cmd == "pi":
             comando_pi()
-
-        elif cmd == "load":
-            comando_load()
 
         elif cmd == "findme":
             comando_findme()
