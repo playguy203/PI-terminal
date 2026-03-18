@@ -1,8 +1,11 @@
 import os
 import time
 import re
+import random
+from collections import Counter
 
 pi_str = ""
+errores = 0
 
 
 def limpiar():
@@ -18,13 +21,13 @@ def banner():
 ██║     ██║       ██║   ███████╗██║  ██║██║ ╚═╝ ██║
 ╚═╝     ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
 
-PI TERMINAL v4
+PI TERMINAL v7
 """)
 
 
 def barra_progreso():
     print("Cargando π...")
-    for i in range(30):
+    for _ in range(30):
         print("█", end="", flush=True)
         time.sleep(0.02)
     print("\n")
@@ -41,109 +44,236 @@ def cargar_pi_desde_txt():
     print("Dígitos cargados:", len(pi_str))
 
 
+# =========================
+# CONTEXTO CON RESALTADO
+# =========================
+
 def mostrar_contexto(pos, longitud):
 
     contexto = 20
-
     inicio = max(0, pos - contexto)
     fin = min(len(pi_str), pos + longitud + contexto)
 
     fragmento = pi_str[inicio:fin]
 
+    resaltado = (
+        fragmento[:pos - inicio] +
+        "[" + fragmento[pos - inicio:pos - inicio + longitud] + "]" +
+        fragmento[pos - inicio + longitud:]
+    )
+
     print("\nContexto en π:\n")
-    print("..." + fragmento + "...")
+    print("..." + resaltado + "...")
 
-    flecha = " " * (pos - inicio + 3) + "↑"
-    print(flecha)
 
+# =========================
+# EASTER EGGS
+# =========================
+
+def easter_egg(numero):
+
+    if numero == "666":
+        print("\n⚠️ Has invocado algo que no debías...")
+    elif numero == "42":
+        print("\nRespuesta al sentido de la vida detectada.")
+    elif numero == "314":
+        print("\nMuy gracioso... estás buscando π dentro de π.")
+    elif numero == "777":
+        print("\nSuerte máxima detectada 🍀")
+    elif numero == "123456":
+        print("\nSecuencia sospechosamente ordenada...")
+    elif numero == "000":
+        print("\nEl vacío absoluto.")
+    elif numero == "73":
+        print("\nSheldon tenía razón.")
+
+
+# =========================
+# BÚSQUEDA
+# =========================
 
 def buscar_todas(secuencia):
-    return [m.start() for m in re.finditer(secuencia, pi_str)]
+    return [m.start() for m in re.finditer(re.escape(secuencia), pi_str)]
+
+
+def buscar_patron(patron):
+    try:
+        return [(m.start(), len(m.group())) for m in re.finditer(patron, pi_str)]
+    except re.error:
+        print("Patrón inválido")
+        return []
 
 
 def comando_search():
 
     numero = input("Número a buscar: ")
+    easter_egg(numero)
 
     resultados = buscar_todas(numero)
 
     if resultados:
 
-        print("\nApariciones encontradas:", len(resultados))
-        print("Primera aparición en posición:", resultados[0] + 1)
+        print("\nApariciones:", len(resultados))
+        print("Primera posición:", resultados[0] + 1)
 
         mostrar_contexto(resultados[0], len(numero))
 
-        if len(resultados) > 1:
+    else:
+        print("No encontrado")
 
-            ver = input("\n¿Ver todas las posiciones? (s/n): ")
 
-            if ver.lower() == "s":
+def comando_pattern():
 
-                for r in resultados:
-                    print(r + 1)
+    print("\nModo regex")
+    patron = input("Patrón: ")
+
+    resultados = buscar_patron(patron)
+
+    if resultados:
+        pos, longitud = resultados[0]
+
+        print("\nApariciones:", len(resultados))
+        print("Primera posición:", pos + 1)
+
+        mostrar_contexto(pos, longitud)
 
     else:
-        print("No encontrado en los dígitos cargados")
+        print("No encontrado")
 
+
+# =========================
+# POSICIÓN
+# =========================
 
 def comando_pos():
 
-    pos = int(input("Posición: "))
+    try:
+        pos = int(input("Posición: "))
+    except:
+        print("Entrada inválida")
+        return
 
     if pos <= len(pi_str):
 
-        print("Número en esa posición:", pi_str[pos-1])
-        mostrar_contexto(pos-1, 1)
+        print("Número:", pi_str[pos - 1])
+
+        if pos == 1:
+            print("El inicio de todo.")
+        elif pos == 314:
+            print("Referencia directa a π.")
+        elif pos == 666:
+            print("...esa posición está maldita.")
+
+        mostrar_contexto(pos - 1, 1)
 
     else:
-        print("Posición fuera del rango cargado")
+        print("Fuera de rango")
 
+
+# =========================
+# π (TROLL)
+# =========================
 
 def comando_pi():
-
-    limpiar()
-    print("π =\n")
-
-    bloque = 5000
-
-    for i in range(0, len(pi_str), bloque):
-        print(pi_str[i:i+bloque])
-
+    print("\nCargando π completo...")
+    time.sleep(1)
+    print("Error: π es demasiado largo para tu mente.")
     input("\nENTER para volver")
 
 
+# =========================
+# RAREZA
+# =========================
+
 def comando_findme():
 
-    numero = input("Ingresa tu número personal (ej. fecha): ")
+    numero = input("Tu número: ")
+    easter_egg(numero)
 
     resultados = buscar_todas(numero)
 
     if resultados:
 
-        print("\nTu número aparece en π")
+        total = len(resultados)
+        densidad = len(pi_str) / total
 
-        print("Total de apariciones:", len(resultados))
-        print("Primera aparición en la posición:", resultados[0] + 1)
+        print("\nApariciones:", total)
+        print("Primera:", resultados[0] + 1)
+        print(f"Frecuencia: 1 cada {int(densidad)} dígitos")
+
+        if densidad < 50:
+            print("Nivel: ULTRA COMÚN")
+        elif densidad < 200:
+            print("Nivel: COMÚN")
+        elif densidad < 1000:
+            print("Nivel: RARO")
+        else:
+            print("Nivel: EXTREMADAMENTE RARO")
 
         mostrar_contexto(resultados[0], len(numero))
 
     else:
-        print("\nTu número no aparece en los dígitos cargados")
+        print("No aparece")
 
+
+# =========================
+# ESTADÍSTICAS
+# =========================
+
+def comando_stats():
+
+    conteo = Counter(pi_str)
+    total = len(pi_str)
+
+    print("\nDistribución:\n")
+
+    for d in sorted(conteo.keys()):
+        cantidad = conteo[d]
+        porcentaje = (cantidad / total) * 100
+        barra = "█" * int(porcentaje * 2)
+
+        print(f"{d}: {cantidad} ({porcentaje:.2f}%) {barra}")
+
+
+# =========================
+# 🎮 MODO JUEGO
+# =========================
+
+def comando_game():
+
+    print("\nModo juego: adivina los siguientes 3 dígitos")
+
+    pos = random.randint(1, len(pi_str) - 4)
+    real = pi_str[pos:pos + 3]
+
+    print("Posición:", pos)
+
+    intento = input("Tu respuesta: ")
+
+    if intento == real:
+        print("✔ Correcto")
+    else:
+        print("✘ Incorrecto. Era:", real)
+
+
+# =========================
+# MENÚ
+# =========================
 
 def menu():
+    global errores
 
     while True:
 
-        print("\nDígitos cargados:", len(pi_str))
+        print("\nDígitos:", len(pi_str))
         print("""
-Comandos disponibles
-
-search   buscar número en π
-pos      ver número en una posición
-pi       mostrar π completo
-findme   buscar tu número personal
+search   buscar
+pattern  regex
+pos      posición
+pi       π completo
+findme   tu número
+stats    estadísticas
+game     jugar
 exit     salir
 """)
 
@@ -151,6 +281,9 @@ exit     salir
 
         if cmd == "search":
             comando_search()
+
+        elif cmd == "pattern":
+            comando_pattern()
 
         elif cmd == "pos":
             comando_pos()
@@ -161,12 +294,37 @@ exit     salir
         elif cmd == "findme":
             comando_findme()
 
+        elif cmd == "stats":
+            comando_stats()
+
+        elif cmd == "game":
+            comando_game()
+
+        elif cmd == "whoami":
+            print("Explorador de π")
+
+        elif cmd == "xyzzy":
+            print("Nada sucede.")
+
         elif cmd == "exit":
             break
 
         else:
-            print("Comando desconocido")
+            errores += 1
 
+            if errores == 3:
+                print("¿Seguro?")
+            elif errores == 5:
+                print("Lee el menú")
+            elif errores == 10:
+                print("Ya es preocupante")
+            else:
+                print("Comando desconocido")
+
+
+# =========================
+# MAIN
+# =========================
 
 limpiar()
 banner()
